@@ -1,10 +1,26 @@
 <?php
 
 require_once('IO/PNG.php');
-  // require_once '/home/yoya/svn/IO_PNG/IO/PNG.php';
 
-$pngdata = file_get_contents($argv[1]);
+$options = getopt("f:hv");
 
-$zip = new IO_PNG();
-$zip->parse($pngdata);
-$zip->dump();
+if ((isset($options['f']) === false) || (is_readable($options['f']) === false)) {
+    fprintf(STDERR, "Usage: php pngdump.php -f <png_file> [-h]\n");
+    fprintf(STDERR, "ex) php pngdump.php -f test.mid -h \n");
+    exit(1);
+}
+
+
+$pngdata = file_get_contents($options['f']);
+
+$png = new IO_PNG();
+$png->parse($pngdata);
+
+$opts = array();
+if (isset($options['h'])) {
+    $opts['hexdump'] = true;
+}
+if (isset($options['v'])) {
+    $opts['verbose'] = true;
+}
+$png->dump($opts);

@@ -4,14 +4,17 @@ require_once 'IO/Bit.php';
 
 class IO_PNG {
     var $_chunkList = null;
+    var $_pngdata = null;
     function parse($pngdata) {
         $bit = new IO_Bit();
         $bit->input($pngdata);
+        $this->_pngdata = $pngdata;
         $signature = $bit->getData(8);
         if ($signature != "\x89\x50\x4E\x47\x0D\x0A\x1A\x0A") {
             throw new Exception ("Not PNG FILE ($sigunature)");
         }
         while ($bit->hasNextData(8)) {
+            list($offset, $dummy) = $bit->getOffset();
             $dataSize = $bit->getUI32BE();
             $chunkName = $bit->getData(4);
             $data = $bit->getData($dataSize);
@@ -44,10 +47,13 @@ class IO_PNG {
 //                $data = gzuncompress($data);
                 break;
             }
+            list($offset2, $dummy) = $bit->getOffset();
             $this->_chunkList []= array('Size' => $dataSize,
                                         'Name' => $chunkName,
                                         'Data' => $data,
-                                        'CRC' => $crc);
+                                        'CRC' => $crc,
+                                        '_offset' => $offset,
+                                        '_length' => $offset2 - $offset);
             if ($chunkName === 'IEND') {
                 break;
             }
@@ -60,7 +66,11 @@ class IO_PNG {
         4 => 'GRAY_ALPHA',
         6 => 'RGB_ALPHA',
         );
-    function dump() {
+    function dump($opts = Array()) {
+        if (empty($opts['hexdump']) === false) {
+            $bitio = new IO_Bit();
+            $bitio->input($this->_pngdata);
+        }
         $idat_data = '';
         foreach ($this->_chunkList as $chunk) {
             echo "Name:{$chunk['Name']} Size={$chunk['Size']} CRC={$chunk['CRC']}\n";
@@ -91,6 +101,9 @@ class IO_PNG {
                 $bit_idat->input($idat_inflated);
                 $bit_idat->hexdump(0, strlen($idat_inflated));
                 break;
+            }
+            if (empty($opts['hexdump']) === false) {
+                $bitio->hexdump($chunk['_offset'], $chunk['_length']);
             }
         }
     }
