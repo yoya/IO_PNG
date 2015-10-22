@@ -1,5 +1,10 @@
 <?php
 
+/*
+  IO_PNG class - version 1.0.0
+  (c) 2011/12/30 yoya@awm.jp
+ */
+
 require_once 'IO/Bit.php';
 
 class IO_PNG {
