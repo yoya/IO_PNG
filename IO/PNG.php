@@ -15,6 +15,9 @@ class IO_PNG {
         $bit = new IO_Bit();
         $bit->input($pngdata);
         $this->_pngdata = $pngdata;
+        if ($bit->hasNextData(8) === false) {
+            throw new Exception ("Not PNG FILE (too short)");
+        }
         $signature = $bit->getData(8);
         if ($signature != self::SIGNATURE) {
             throw new Exception ("Not PNG FILE ($sigunature)");
