@@ -36,7 +36,7 @@ if (isset($options['s'])) {
 		$chunkName = $chunk['Name'];
 		$chunkOffset = $chunk['_offset'];
 		$chunkLength = $chunk['_length'];
-        echo "[$idx] $chunkName offset:$chunkOffset length:$chunkLength".PHP_EOL;
+        echo "{$pngfile}[$idx] $chunkName offset:$chunkOffset length:$chunkLength".PHP_EOL;
     }
 }
 
