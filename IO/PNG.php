@@ -10,12 +10,13 @@ require_once 'IO/Bit.php';
 class IO_PNG {
     var $_chunkList = null;
     var $_pngdata = null;
+    const SIGNATURE = "\x89\x50\x4E\x47\x0D\x0A\x1A\x0A";
     function parse($pngdata) {
         $bit = new IO_Bit();
         $bit->input($pngdata);
         $this->_pngdata = $pngdata;
         $signature = $bit->getData(8);
-        if ($signature != "\x89\x50\x4E\x47\x0D\x0A\x1A\x0A") {
+        if ($signature != self::SIGNATURE) {
             throw new Exception ("Not PNG FILE ($sigunature)");
         }
         while ($bit->hasNextData(8)) {
