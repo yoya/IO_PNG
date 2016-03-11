@@ -99,6 +99,27 @@ class IO_PNG {
                 printf("    Gamma:%.5f\n", $gamma/100000);
                 break;
             case 'PLTE':
+                $bit_idat = new IO_Bit();
+                $bit_idat->input($chunk['Data']);
+                $i = 0;
+                $unit = 8;
+                while ($bit_idat->hasNextData(3)) {
+                    if (($i % $unit) === 0) {
+                        printf("    0x%02x:", $i);
+                    }
+                    $r = $bit_idat->getUI8();
+                    $g = $bit_idat->getUI8();
+                    $b = $bit_idat->getUI8();
+                    printf(" %02x%02x%02x", $i, $r, $g, $b);
+                    $i++;
+                    if (($i > 0) && (($i % $unit) === 0)) {
+                        echo "\n";
+                    }
+                }
+                if (($i % $unit) !== 0) {
+                    echo "\n";
+                }
+                break;
             case 'tRNS':
             case 'IDAT':
                 $bit_idat = new IO_Bit();
