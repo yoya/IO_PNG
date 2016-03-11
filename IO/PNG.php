@@ -81,12 +81,14 @@ class IO_PNG {
             $bitio->input($this->_pngdata);
         }
         $idat_data = '';
+        $colorType = null;
         foreach ($this->_chunkList as $chunk) {
             echo "Name:{$chunk['Name']} Size={$chunk['Size']} CRC={$chunk['CRC']}\n";
             $data = $chunk['Data'];
             switch ($chunk['Name']) {
             case 'IHDR':
-                $colorTypeName = self::$colorTypeNameTable[$data['ColorType']];
+                $colorType = $data['ColorType'];
+                $colorTypeName = self::$colorTypeNameTable[$colorType];
                 echo "  Width:{$data['Width']} Height{$data['Height']} BitDepth:{$data['BitDepth']}";
                 echo " ColorType:{$data['ColorType']}($colorTypeName)";
                 echo " Compression:{$data['Compression']} Filter:{$data['Filter']} Interlate:{$data['Interlace']}";
@@ -121,6 +123,37 @@ class IO_PNG {
                 }
                 break;
             case 'tRNS':
+                switch ($colorType) {
+                case 0: // Gray
+                case 3: // PALETTE
+                    $nComp = 1;
+                    $unit = 24;
+                    break;
+                case 2: // RGB
+                    $nComp = 3;
+                    $unit = 8;
+                    break;
+                }
+                $bit_idat = new IO_Bit();
+                $bit_idat->input($chunk['Data']);
+                $i = 0;
+                while ($bit_idat->hasNextData($nComp)) {
+                    if (($i % $unit) === 0) {
+                        printf("    0x%02x:", $i);
+                    }
+                    printf(" ");
+                    for ($nc = 0; $nc < $nComp ; $nc++) {
+                        printf("%02x", $bit_idat->getUI8());
+                    }
+                    $i++;
+                    if (($i > 0) && (($i % $unit) === 0)) {
+                        echo "\n";
+                    }
+                }
+                if (($i % $unit) !== 0) {
+                    echo "\n";
+                }
+                break;
             case 'IDAT':
                 $bit_idat = new IO_Bit();
                 $bit_idat->input($chunk['Data']);
