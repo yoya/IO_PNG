@@ -92,6 +92,12 @@ class IO_PNG {
                 echo " Compression:{$data['Compression']} Filter:{$data['Filter']} Interlate:{$data['Interlace']}";
                 echo "\n";
                 break;
+            case 'gAMA':
+                $bit_idat = new IO_Bit();
+                $bit_idat->input($chunk['Data']);
+                $gamma = $bit_idat->getUI32BE();
+                printf("    Gamma:%.5f\n", $gamma/100000);
+                break;
             case 'PLTE':
             case 'tRNS':
             case 'IDAT':
