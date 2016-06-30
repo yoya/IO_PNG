@@ -52,8 +52,18 @@ class IO_PNG {
                     );
 
                 break;
-//            case 'IDAT':
-//                $data = gzuncompress($data);
+            case 'gAMA':
+                $bit_gama = new IO_Bit();
+                $bit_gama->input($data);
+                $gamma = $bit_gama->getUI32BE();
+                $data = $gamma /100000;
+                break;
+            case 'PLTE':
+            case 'tRNS':
+            case 'IEND':
+            case 'IDAT':
+            default:
+                // $data = $data;
                 break;
             }
             list($offset2, $dummy) = $bit->getOffset();
@@ -95,14 +105,12 @@ class IO_PNG {
                 echo "\n";
                 break;
             case 'gAMA':
-                $bit_idat = new IO_Bit();
-                $bit_idat->input($chunk['Data']);
-                $gamma = $bit_idat->getUI32BE();
-                printf("    Gamma:%.5f\n", $gamma/100000);
+                $gamma = $data;
+                printf("    Gamma:%.5f\n", $gamma);
                 break;
             case 'PLTE':
                 $bit_idat = new IO_Bit();
-                $bit_idat->input($chunk['Data']);
+                $bit_idat->input($data);
                 $i = 0;
                 $unit = 8;
                 while ($bit_idat->hasNextData(3)) {
@@ -135,7 +143,7 @@ class IO_PNG {
                     break;
                 }
                 $bit_idat = new IO_Bit();
-                $bit_idat->input($chunk['Data']);
+                $bit_idat->input($data);
                 $i = 0;
                 while ($bit_idat->hasNextData($nComp)) {
                     if (($i % $unit) === 0) {
@@ -155,20 +163,21 @@ class IO_PNG {
                 }
                 break;
             case 'IDAT':
-                $bit_idat = new IO_Bit();
-                $bit_idat->input($chunk['Data']);
-//                $bit_idat->hexdump(0, strlen($chunk['Data']));
-                $bit_idat->hexdump(0, 0x10);
+            default:
+                $bit_data = new IO_Bit();
+                $bit_data->input($data);
+                $bit_data->hexdump(0, 0x10);
                 echo "...\n";
                 if ($chunk['Name'] === 'IDAT') {
-                    $idat_data .= $chunk['Data'];
+                    $idat_data .= $data;
                 }
                 break;
             case 'IEND':
+                // print IDAT inflated data
                 $idat_inflated = gzuncompress($idat_data);
-                $bit_idat = new IO_Bit();
-                $bit_idat->input($idat_inflated);
-                $bit_idat->hexdump(0, strlen($idat_inflated));
+                $bit_iend = new IO_Bit();
+                $bit_iend->input($idat_inflated);
+                $bit_iend->hexdump(0, strlen($idat_inflated));
                 break;
             }
             if (empty($opts['hexdump']) === false) {
@@ -176,5 +185,4 @@ class IO_PNG {
             }
         }
     }
-
 }
