@@ -185,4 +185,39 @@ class IO_PNG {
             }
         }
     }
+    function build($opts = array()) {
+        $bit = new IO_Bit();
+        $bit->putData(self::SIGNATURE);
+        foreach ($this->_chunkList as $chunk) {
+            $data = $chunk['Data'];
+            switch ($chunk['Name']) {
+            case 'IHDR':
+                $bit_ihdr = new IO_Bit();
+                $bit_ihdr->putUI32BE($data['Width']);
+                $bit_ihdr->putUI32BE($data['Height']);
+                $bit_ihdr->putUI8($data['BitDepth']);
+                $bit_ihdr->putUI8($data['ColorType']);
+                $bit_ihdr->putUI8($data['Compression']);
+                $bit_ihdr->putUI8($data['Filter']);
+                $bit_ihdr->putUI8($data['Interlace']);
+                $data = $bit_ihdr->getData();
+            case 'gAMA':
+                $bit_gama = new IO_Bit();
+                $gamma = $data * 100000;
+                $bit_gama->putUI32BE($gamma);
+                $data = $bit_ihdr->getData();
+                break;
+            case 'PLTE':
+                break;
+            case 'tRNS':
+                break;
+            case 'IDAT':
+                break;
+            default:
+                break;
+            }
+            // build chunk
+        }
+        return ;
+    }
 }
