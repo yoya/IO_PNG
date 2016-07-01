@@ -189,8 +189,9 @@ class IO_PNG {
         $bit = new IO_Bit();
         $bit->putData(self::SIGNATURE);
         foreach ($this->_chunkList as $chunk) {
+            $chunkName = $chunk['Name'];
             $data = $chunk['Data'];
-            switch ($chunk['Name']) {
+            switch ($chunkName) {
             case 'IHDR':
                 $bit_ihdr = new IO_Bit();
                 $bit_ihdr->putUI32BE($data['Width']);
@@ -200,12 +201,12 @@ class IO_PNG {
                 $bit_ihdr->putUI8($data['Compression']);
                 $bit_ihdr->putUI8($data['Filter']);
                 $bit_ihdr->putUI8($data['Interlace']);
-                $data = $bit_ihdr->getData();
+                $data = $bit_ihdr->output();
             case 'gAMA':
                 $bit_gama = new IO_Bit();
                 $gamma = $data * 100000;
                 $bit_gama->putUI32BE($gamma);
-                $data = $bit_ihdr->getData();
+                $data = $bit_ihdr->output();
                 break;
             case 'PLTE':
                 break;
@@ -217,7 +218,14 @@ class IO_PNG {
                 break;
             }
             // build chunk
+            $dataSize = strlen($data);
+            $crc = crc32($chunkName . $data);
+            //
+            $bit->putUI32BE($dataSize);
+            $bit->putData($chunkName);
+            $bit->putData($data);
+            $bit->putUI32BE($crc);
         }
-        return ;
+        return $bit->output();
     }
 }
