@@ -22,20 +22,20 @@ $png = new IO_PNG();
 $png->parse($pngdata);
 
 if (isset($options['s'])) {
-	foreach ($png->_chunkList as $idx => $chunk) {
-		$chunkName = $chunk['Name'];
-		$chunkOffset = $chunk['_offset'];
-		$chunkLength = $chunk['_length'];
-		$filename = sprintf("%02d_%s.pnc", $idx, $chunkName);
+    foreach ($png->_chunkList as $idx => $chunk) {
+        $chunkName = $chunk['Name'];
+        $chunkOffset = $chunk['_offset'];
+        $chunkLength = $chunk['_length'];
+        $filename = sprintf("%02d_%s.pnc", $idx, $chunkName);
         $data = substr($png->_pngdata, $chunkOffset, $chunkLength);
-		file_put_contents($filename, $data);
-	}
+        file_put_contents($filename, $data);
+    }
 } else {
     // list only
     foreach ($png->_chunkList as $idx => $chunk) {
-		$chunkName = $chunk['Name'];
-		$chunkOffset = $chunk['_offset'];
-		$chunkLength = $chunk['_length'];
+        $chunkName = $chunk['Name'];
+        $chunkOffset = $chunk['_offset'];
+        $chunkLength = $chunk['_length'];
         echo "{$pngfile}[$idx] $chunkName offset:$chunkOffset length:$chunkLength".PHP_EOL;
     }
 }
