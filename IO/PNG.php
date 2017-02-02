@@ -202,6 +202,7 @@ class IO_PNG {
                 $bit_ihdr->putUI8($data['Filter']);
                 $bit_ihdr->putUI8($data['Interlace']);
                 $data = $bit_ihdr->output();
+                break;
             case 'gAMA':
                 $bit_gama = new IO_Bit();
                 $gamma = $data * 100000;
