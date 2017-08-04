@@ -27,8 +27,8 @@ if (isset($options['s'])) {
         $chunkOffset = $chunk['_offset'];
         $chunkLength = $chunk['_length'];
         $filename = sprintf("%02d_%s.pnc", $idx, $chunkName);
-        $data = substr($png->_pngdata, $chunkOffset, $chunkLength);
-        file_put_contents($filename, $data);
+        $chunkNameData = substr($png->_pngdata, $chunkOffset + 4, $chunkLength - 8);
+        file_put_contents($filename, $chunkNameData);
     }
 } else {
     // list only
