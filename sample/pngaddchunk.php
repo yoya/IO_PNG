@@ -36,7 +36,7 @@ if (isset($options['t']) === false) {
     $typeArg = $options['t'];
     $dataArg = $options['d'];
     switch ($typeArg) {
-    case "iCPP":
+    case "iCCP":
         foreach ($png->_chunkList as $idx => $chunk) {
             if (in_array($chunk["Name"], ["IHDR"]) === false) {
                 break;
