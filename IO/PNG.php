@@ -162,6 +162,14 @@ class IO_PNG {
                     echo "\n";
                 }
                 break;
+            case 'iCCP':
+                $bit_idat = new IO_Bit();
+                $bit_idat->input($data);
+                printf("    %s\n", $bit_idat->getData(5));
+                $compressedICCP =$bit_idat->getDataUntil(false);
+                $iccpData = gzuncompress($compressedICCP);
+                printf("    %s\n", substr($iccpData, 0, 0x20));
+                break;
             case 'IDAT':
             default:
                 $bit_data = new IO_Bit();
