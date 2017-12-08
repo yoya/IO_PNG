@@ -5,12 +5,17 @@
   (c) 2011/12/30 yoya@awm.jp
  */
 
-require_once 'IO/Bit.php';
+if (is_readable('vendor/autoload.php')) {
+    require 'vendor/autoload.php';
+} else {
+    require_once 'IO/Bit.php';
+}
 
 class IO_PNG {
     var $_chunkList = null;
     var $_pngdata = null;
     const SIGNATURE = "\x89\x50\x4E\x47\x0D\x0A\x1A\x0A";
+    const SIGNATURE_JNG = "\x8B\x4A\x4E\x47\x0D\x0A\x1A\x0A";
     function parse($pngdata) {
         $bit = new IO_Bit();
         $bit->input($pngdata);
@@ -19,8 +24,9 @@ class IO_PNG {
             throw new Exception ("Not PNG FILE (too short)");
         }
         $signature = $bit->getData(8);
-        if ($signature != self::SIGNATURE) {
-            throw new Exception ("Not PNG FILE ($sigunature)");
+        if (($signature != self::SIGNATURE) &&
+            ($signature != self::SIGNATURE_JNG)) {
+            throw new Exception ("Not PNG,JNG FILE ($sigunature)");
         }
         while ($bit->hasNextData(8)) {
             list($offset, $dummy) = $bit->getOffset();

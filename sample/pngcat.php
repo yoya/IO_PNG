@@ -1,6 +1,10 @@
 <?php
 
-require_once 'IO/PNG.php';
+if (is_readable('vendor/autoload.php')) {
+    require 'vendor/autoload.php';
+} else {
+    require_once 'IO/PNG.php';
+}
 
 function usage() {
     echo "Usage: php pngcat.php <pngchunk> [<pngchunk2> [...] ]".PHP_EOL;
