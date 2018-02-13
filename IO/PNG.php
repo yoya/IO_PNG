@@ -64,6 +64,15 @@ class IO_PNG {
                 $gamma = $bit_gama->getUI32BE();
                 $data = $gamma /100000;
                 break;
+            case 'pHYs':
+                $bit_phys = new IO_Bit();
+                $bit_phys->input($data);
+                $data = array(
+                    'PixelsX' => $bit_phys->getUI32BE(),
+                    'PixelsY' => $bit_phys->getUI32BE(),
+                    'UnitSpec' => $bit_phys->getUI8(),
+                );
+                break;
             case 'PLTE':
             case 'tRNS':
             case 'IEND':
@@ -113,6 +122,14 @@ class IO_PNG {
             case 'gAMA':
                 $gamma = $data;
                 printf("    Gamma:%.5f\n", $gamma);
+                break;
+            case 'pHYs':
+                $pixelsX = $data['PixelsX'];
+                $pixelsY = $data['PixelsY'];
+                $unitSpec = $data['UnitSpec'];
+                $unitSpecName = ["Unknown", "Metre"][$unitSpec];
+                printf("    pixelsX:%d, pixelsY:%d, unitSpecName:%s\n",
+                       $pixelsX, $pixelsY, $unitSpecName);
                 break;
             case 'PLTE':
                 $bit_idat = new IO_Bit();
@@ -222,6 +239,13 @@ class IO_PNG {
                 $gamma = $data * 100000;
                 $bit_gama->putUI32BE($gamma);
                 $data = $bit_ihdr->output();
+                break;
+            case 'pHYs':
+                $bit_phys = new IO_Bit();
+                $bit_phys->putUI32BE($data['PixelsX']);
+                $bit_phys->putUI32BE($data['PixelsY']);
+                $bit_phys->putUI8($data['UnitSpec']);
+                $data = $bit_phys->output();
                 break;
             case 'PLTE':
                 break;
