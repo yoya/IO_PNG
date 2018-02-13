@@ -1,7 +1,7 @@
 <?php
 
 /*
-  IO_PNG class - version 1.0.0
+  IO_PNG class
   (c) 2011/12/30 yoya@awm.jp
  */
 
@@ -26,7 +26,7 @@ class IO_PNG {
         $signature = $bit->getData(8);
         if (($signature != self::SIGNATURE) &&
             ($signature != self::SIGNATURE_JNG)) {
-            throw new Exception ("Not PNG,JNG FILE ($sigunature)");
+            throw new Exception ("Not PNG,JNG FILE ($signature)");
         }
         while ($bit->hasNextData(8)) {
             list($offset, $dummy) = $bit->getOffset();
