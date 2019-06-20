@@ -238,7 +238,7 @@ class IO_PNG {
                 $bit_gama = new IO_Bit();
                 $gamma = $data * 100000;
                 $bit_gama->putUI32BE($gamma);
-                $data = $bit_ihdr->output();
+                $data = $bit_gama->output();
                 break;
             case 'pHYs':
                 $bit_phys = new IO_Bit();
