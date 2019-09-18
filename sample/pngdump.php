@@ -19,11 +19,9 @@ $pngdata = file_get_contents($options['f']);
 $png = new IO_PNG();
 $png->parse($pngdata);
 
-$opts = array();
-if (isset($options['h'])) {
-    $opts['hexdump'] = true;
-}
-if (isset($options['v'])) {
-    $opts['verbose'] = true;
-}
+$opts = array(
+    'hexdump' => isset($options['h']),
+    'verbose' => isset($options['v']),
+);
+
 $png->dump($opts);
