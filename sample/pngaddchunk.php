@@ -42,18 +42,23 @@ if (isset($options['t']) === false) {
 } else {
     $typeArg = $options['t'];
     $dataArg = $options['d'];
+    if ($png->_chunkList[0]["Name"] !== "IHDR") {
+        fwrite(STDERR, "IHDR must be head chunk\n");
+        exit (1);
+    }
+    $IHDR_idx = 0;
     switch ($typeArg) {
     case "iCCP":
-        foreach ($png->_chunkList as $idx => $chunk) {
-            if (in_array($chunk["Name"], ["IHDR"]) === false) {
-                break;
-            }
-        }
         $chunkData_head5 = "icc\0\0";
         $iccData = file_get_contents($dataArg);
         $chunk = ["Name" => "iCCP",
                   "Data" => $chunkData_head5 . gzcompress($iccData)];
-        array_splice($png->_chunkList, $idx, 0, [$chunk]);
+        array_splice($png->_chunkList, $IHDR_idx + 1, 0, [$chunk]);
+        break;
+    case "gAMA":
+        $chunk = ["Name" => "gAMA",
+                  "Data" => $dataArg];
+        array_splice($png->_chunkList, $IHDR_idx + 1, 0, [$chunk]);
         break;
     default:
         echo "Unknown type:$typeArg\n";
