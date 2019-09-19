@@ -16,13 +16,19 @@ function usage() {
     echo "Usage: php pnggetchunk -f test.png -t IDAT -u".PHP_EOL;
 }
 
-if ((isset($options['f']) === false) ||
-    (is_readable($options['f']) === false)) {
+if (isset($options['f']) === false) {
+    usage();
+    exit(1);
+}
+$pngfile = $options['f'];
+
+if ($pngfile === "-") {
+    $pngfile = "php://stdin";
+} else if (is_readable($pngfile) === false) {
     usage();
     exit(1);
 }
 
-$pngfile = $options['f'];
 $pngdata = file_get_contents($pngfile);
 
 $uncompress = isset($options['u']);
