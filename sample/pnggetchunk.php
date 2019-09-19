@@ -6,12 +6,14 @@ if (is_readable('vendor/autoload.php')) {
     require_once 'IO/PNG.php';
 }
 
-$options = getopt("f:t:d:");
+$options = getopt("f:t:u");
 
 function usage() {
-    echo "Usage: php pnggetchunk -f <pngfile> [-t <chunktype>]".PHP_EOL;
+    echo "Usage: php pnggetchunk -f <pngfile> [-t <chunktype>] [-u]".PHP_EOL;
     echo "Usage: php pnggetchunk -f test.png".PHP_EOL;
-    echo "Usage: php pnggetchunk -f test.png -t iCCP".PHP_EOL;
+    echo "Usage: php pnggetchunk -f test.png -t gAMA".PHP_EOL;
+    echo "Usage: php pnggetchunk -f test.png -t iCCP -u".PHP_EOL;
+    echo "Usage: php pnggetchunk -f test.png -t IDAT -u".PHP_EOL;
 }
 
 if ((isset($options['f']) === false) ||
@@ -22,6 +24,8 @@ if ((isset($options['f']) === false) ||
 
 $pngfile = $options['f'];
 $pngdata = file_get_contents($pngfile);
+
+$uncompress = isset($options['u']);
 
 $png = new IO_PNG();
 $png->parse($pngdata);
@@ -38,16 +42,27 @@ if (isset($options['t']) === false) {
     }
 } else {
     $typeArg = $options['t'];
+    $data = "";
     foreach ($png->_chunkList as $idx => $chunk) {
         $chunkName = $chunk['Name'];
         if ($chunkName !== $typeArg)  {
             continue;
         }
         switch ($chunkName) {
+        case "IDAT":
+            $data .= $chunk['Data'];
+            break;
         case "iCCP":
-            $iccCompData = substr($chunk['Data'], 5);
-            echo gzuncompress($iccCompData);
+            $data = substr($chunk['Data'], 5);
+            break;
+        case "IDAT":
+        default: // "gAMA"
+            $data = $chunk['Data'];
             break;
         }
     }
+    if ($uncompress) {
+        $data = gzuncompress($data);
+    }
+    echo $data;
 }
