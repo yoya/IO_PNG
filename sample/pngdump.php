@@ -8,13 +8,25 @@ if (is_readable('vendor/autoload.php')) {
 
 $options = getopt("f:hv");
 
-if ((isset($options['f']) === false) || (is_readable($options['f']) === false)) {
+function usage() {
     fprintf(STDERR, "Usage: php pngdump.php -f <png_file> [-h]\n");
     fprintf(STDERR, "ex) php pngdump.php -f test.png -h \n");
+}
+
+if (isset($options['f']) === false) {
+    usage();
+    exit(1);
+}
+$pngfile = $options['f'];
+
+if ($pngfile === "-") {
+    $pngfile = "php://stdin";
+} else if (is_readable($pngfile) === false) {
+    usage();
     exit(1);
 }
 
-$pngdata = file_get_contents($options['f']);
+$pngdata = file_get_contents($pngfile);
 
 $png = new IO_PNG();
 $png->parse($pngdata);

@@ -14,13 +14,19 @@ function usage() {
     echo "Usage: php pngaddchunk -f test.png -t iCCP -d sRGB.icc".PHP_EOL;
 }
 
-if ((isset($options['f']) === false) ||
-    (is_readable($options['f']) === false)) {
+if (isset($options['f']) === false) {
+    usage();
+    exit(1);
+}
+$pngfile = $options['f'];
+
+if ($pngfile === "-") {
+    $pngfile = "php://stdin";
+} else if (is_readable($pngfile) === false) {
     usage();
     exit(1);
 }
 
-$pngfile = $options['f'];
 $pngdata = file_get_contents($pngfile);
 
 $png = new IO_PNG();
