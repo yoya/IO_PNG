@@ -48,12 +48,18 @@ if (isset($options['t']) === false) {
             continue;
         }
         switch ($chunkName) {
+        case "gAMA":
+                $png->_chunkList[$idx]['Data'] = $dataArg;
+            break;
         case "iCCP":
             $chunkData = $chunk['Data'];
             $chunkData_head5 = substr($chunkData, 0, 5);
             $iccData = file_get_contents($dataArg);
             $png->_chunkList[$idx]['Data'] = $chunkData_head5 . gzcompress($iccData);
             break;
+        default:
+            echo "Unknown type:$typeArg\n";
+            exit (1);
         }
     }
     echo $png->build();
