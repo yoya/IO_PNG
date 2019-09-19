@@ -33,15 +33,7 @@ $png = new IO_PNG();
 $png->parse($pngdata);
 
 if (isset($options['t']) === false) {
-    foreach ($png->_chunkList as $idx => $chunk) {
-        echo $chunk['Name'].":";
-        if (is_string($chunk['Data'])) {
-            $chunkData = $chunk['Data'];
-            $chunkLen = strlen($chunkData);
-            echo "($chunkLen)";
-        }
-        echo PHP_EOL;
-    }
+    $png->dump(["detail" => false]);
 } else {
     $typeArg = $options['t'];
     $chunkList = [];
