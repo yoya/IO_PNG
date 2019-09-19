@@ -6,7 +6,7 @@ if (is_readable('vendor/autoload.php')) {
     require_once 'IO/PNG.php';
 }
 
-$options = getopt("f:hv");
+$options = getopt("f:hvD");
 
 function usage() {
     fprintf(STDERR, "Usage: php pngdump.php -f <png_file> [-h]\n");
@@ -32,8 +32,9 @@ $png = new IO_PNG();
 $png->parse($pngdata);
 
 $opts = array(
-    'hexdump' => isset($options['h']),
-    'verbose' => isset($options['v']),
+    'hexdump'  => isset($options['h']),
+    'verbose'  => isset($options['v']),
+    'detail' => ! isset($options['D']),
 );
 
 $png->dump($opts);

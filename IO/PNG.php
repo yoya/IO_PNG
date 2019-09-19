@@ -109,6 +109,9 @@ class IO_PNG {
         $colorType = null;
         foreach ($this->_chunkList as $chunk) {
             echo "Name:{$chunk['Name']} Size={$chunk['Size']} CRC={$chunk['CRC']}\n";
+            if (empty($opts['detail'])) {
+                continue;
+            }
             $data = $chunk['Data'];
             switch ($chunk['Name']) {
             case 'IHDR':
