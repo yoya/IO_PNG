@@ -108,10 +108,25 @@ class IO_PNG {
         $idat_data = '';
         $colorType = null;
         foreach ($this->_chunkList as $chunk) {
-            echo "Name:{$chunk['Name']} Size={$chunk['Size']} CRC={$chunk['CRC']}\n";
+            echo "Name:{$chunk['Name']} Size={$chunk['Size']} CRC={$chunk['CRC']}";
             if (empty($opts['detail'])) {
+                if (isset($chunk['Data'])) {
+                    echo " ";
+                    $chunkData = $chunk['Data'];
+                    if (is_array($chunkData)) {
+                        echo "(".implode(",", $chunkData).")";
+                    } else if (is_string($chunk['Data'])) {
+                        if (ctype_print($chunkData)) {
+                            echo "($chunkLen)";
+                        }
+                    } else {
+                        echo "($chunkData)";
+                    }
+                }
+                echo PHP_EOL;
                 continue;
             }
+            echo PHP_EOL;
             $data = $chunk['Data'];
             switch ($chunk['Name']) {
             case 'IHDR':
