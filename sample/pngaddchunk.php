@@ -36,6 +36,9 @@ if (isset($options['t']) === false) {
         }
         echo PHP_EOL;
     }
+} else if (isset($options['d']) === false) {
+    fwrite(STDERR, "t(chunk type) & d(chunk data) parameters required in set.\n");
+    exit (1);
 } else {
     $typeArg = $options['t'];
     $dataArg = $options['d'];
