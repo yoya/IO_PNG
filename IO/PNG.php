@@ -131,7 +131,11 @@ class IO_PNG {
             switch ($chunk['Name']) {
             case 'IHDR':
                 $colorType = $data['ColorType'];
-                $colorTypeName = self::$colorTypeNameTable[$colorType];
+                if (isset(self::$colorTypeNameTable[$colorType])) {
+                    $colorTypeName  = self::$colorTypeNameTable[$colorType];
+                } else {
+                    $colorTypeName  = "UnknownType";
+                }
                 echo "  Width:{$data['Width']} Height{$data['Height']} BitDepth:{$data['BitDepth']}";
                 echo " ColorType:{$data['ColorType']}($colorTypeName)";
                 echo " Compression:{$data['Compression']} Filter:{$data['Filter']} Interlate:{$data['Interlace']}";
