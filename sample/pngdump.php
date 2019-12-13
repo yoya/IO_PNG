@@ -29,7 +29,12 @@ if ($pngfile === "-") {
 $pngdata = file_get_contents($pngfile);
 
 $png = new IO_PNG();
-$png->parse($pngdata);
+
+try {
+    $png->parse($pngdata);
+} catch (Exception $e) {
+    echo "Exception".$e->getMessage().PHP_EOL;
+}
 
 $opts = array(
     'hexdump'  => isset($options['h']),
