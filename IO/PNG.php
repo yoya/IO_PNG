@@ -36,7 +36,7 @@ class IO_PNG {
             $crc = $bit->getUI32BE();
             $namedata_crc32 = crc32($chunkName.$data);
             if ($crc !== $namedata_crc32) {
-                fprintf(STDERR, "Warning: chunkName:$chunkName crc:$crc namedata_crc32=$namedata_crc32\n");
+                fprintf(STDERR, "Warning: chunkName:$chunkName crc:$crc namedata_crc32:$namedata_crc32\n");
             }
             switch ($chunkName) {
             case 'IHDR':
