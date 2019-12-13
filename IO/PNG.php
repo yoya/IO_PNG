@@ -34,8 +34,10 @@ class IO_PNG {
             $chunkName = $bit->getData(4);
             $data = $bit->getData($dataSize);
             $crc = $bit->getUI32BE();
-//            $data_crc32 = sprintf("%u", crc32($chunkName.$data));
-//            echo "data_crc32=$data_crc32\n";
+            $namedata_crc32 = crc32($chunkName.$data);
+            if ($crc !== $namedata_crc32) {
+                fprintf(STDERR, "Warning: chunkName:$chunkName crc:$crc namedata_crc32=$namedata_crc32\n");
+            }
             switch ($chunkName) {
             case 'IHDR':
                 $bit_chunk = new IO_Bit();
