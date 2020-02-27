@@ -291,4 +291,59 @@ class IO_PNG {
         }
         return $bit->output();
     }
+    function dumpFilter($opts = Array()) {
+        $idat_data = "";
+        $width     = null;
+        $height    = null;
+        $bitdepth  = null;
+        $colortype = null;
+        foreach ($this->_chunkList as $chunk) {
+            $name = $chunk['Name'];
+            $data = $chunk['Data'];
+            switch ($name) {
+            case 'IHDR':
+                // $colorTypeName  = self::$colorTypeNameTable[$data['ColorType']];
+                // echo "  Width:{$data['Width']} Height:{$data['Height']} BitDepth:{$data['BitDepth']}\n";
+                //  echo " ColorType:{$data['ColorType']}($colorTypeName)";
+                // echo " Compression:{$data['Compression']} Filter:{$data['Filter']} Interlate:{$data['Interlace']}\n";
+                $width     = $data['Width']; 
+                $height    = $data['Height'];
+                $bitdepth  = $data['BitDepth'];
+                $colortype = $data['ColorType'];
+                break;
+            case 'IDAT':
+                $idat_data .= $data;
+                break;
+            }
+        }
+        $idat_inflated = gzuncompress($idat_data);
+        $ncomp = 0;
+        switch ($colortype) {
+        case 0:  // GRAY
+            $ncomp = 1;
+            break;
+        case 2:  // RGB (RGB24)
+            $ncomp = 3;
+            break;
+        case 3:  // PALETTE
+            $ncomp = 1;
+            break;
+        case 4:  // GRAY_ALPHA
+            $ncomp = 2;
+            break;
+        case 6:  // RGB_ALPHA (RGB32)
+            $ncomp = 4;
+            break;
+        default:
+            throw new Exception("unknown colortype:$colortype");
+        }
+        $stride = 1 + $width * $ncomp * ceil($bitdepth / 8);
+        $offset = 0;
+        for ($y = 0 ; $y < $height ; $y++) {
+            $filter = ord(substr($idat_inflated, $offset, 1));
+            $offset += $stride;
+            echo "$filter ";
+        }
+        echo PHP_EOL;
+    }
 }
