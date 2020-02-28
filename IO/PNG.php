@@ -337,10 +337,10 @@ class IO_PNG {
         default:
             throw new Exception("unknown colortype:$colortype");
         }
-        $stride = 1 + ceil($width * $ncomp * $bitdepth / 8);
+        $stride = 1 + (int) ceil($width * $ncomp * $bitdepth / 8);
         $offset = 0;
         for ($y = 0 ; $y < $height ; $y++) {
-            $filter = ord(substr($idat_inflated, $offset, 1));
+            $filter = ord($idat_inflated{$offset});
             $offset += $stride;
             echo "$filter ";
         }
