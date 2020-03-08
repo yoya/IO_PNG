@@ -1,7 +1,7 @@
 <?php
 
 /*
-  IO_PNG class - 1.2.3
+  IO_PNG class - 1.2.4
   (c) 2011/12/30 yoya@awm.jp
  */
 
