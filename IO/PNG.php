@@ -346,4 +346,66 @@ class IO_PNG {
         }
         echo PHP_EOL;
     }
+    function changeFilter($filter, $opts = Array()) {
+        $idat_data = "";
+        $width     = null;
+        $height    = null;
+        $bitdepth  = null;
+        $colortype = null;
+        $idat_idx = null;
+        foreach ($this->_chunkList as $idx => $chunk) {
+            $name = $chunk['Name'];
+            $data = $chunk['Data'];
+            switch ($name) {
+            case 'IHDR':
+                $width     = $data['Width'];
+                $height    = $data['Height'];
+                $bitdepth  = $data['BitDepth'];
+                $colortype = $data['ColorType'];
+                break;
+            case 'IDAT':
+                if (is_null($idat_idx)) {
+                    $idat_idx = $idx;
+                }
+                $idat_data .= $data;
+                unset($this->_chunkList[$idx]);  // delete old IDAT
+                break;
+            }
+        }
+        $idat_inflated = gzuncompress($idat_data);
+        $ncomp = 0;
+        switch ($colortype) {
+        case 0:  // GRAY
+            $ncomp = 1;
+            break;
+        case 2:  // RGB (RGB24)
+            $ncomp = 3;
+            break;
+        case 3:  // PALETTE
+            $ncomp = 1;
+            break;
+        case 4:  // GRAY_ALPHA
+            $ncomp = 2;
+            break;
+        case 6:  // RGB_ALPHA (RGB32)
+            $ncomp = 4;
+            break;
+        default:
+            throw new Exception("unknown colortype:$colortype");
+        }
+        $stride = 1 + (int) ceil($width * $ncomp * $bitdepth / 8);
+        $offset = 0;
+        for ($y = 0 ; $y < $height ; $y++) {
+            $idat_inflated{$offset} = chr($filter);
+            $offset += $stride;
+        }
+        $data = gzcompress($idat_inflated);
+        $dataSize = strlen($data);
+        $crc =  crc32("IDAT" . $data);
+        $IDATchunk = array('Size' => $dataSize,
+                           'Name' => "IDAT",
+                           'Data' => $data,
+                           'CRC' => $crc);
+        array_splice($this->_chunkList, $idat_idx, 0, [$IDATchunk]);
+    }
 }
