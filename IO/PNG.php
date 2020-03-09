@@ -346,7 +346,7 @@ class IO_PNG {
         }
         echo PHP_EOL;
     }
-    function changeFilter($filter, $opts = Array()) {
+    function changeFilter($filter) {
         $idat_data = "";
         $width     = null;
         $height    = null;
