@@ -291,34 +291,31 @@ class IO_PNG {
         }
         return $bit->output();
     }
-    function dumpFilter($opts = Array()) {
-        $idat_data = "";
-        $width     = null;
-        $height    = null;
-        $bitdepth  = null;
-        $colortype = null;
-        $summalize = $opts["summalize"];
+    function getIHDRdata() {
         foreach ($this->_chunkList as $chunk) {
-            $name = $chunk['Name'];
-            $data = $chunk['Data'];
-            switch ($name) {
-            case 'IHDR':
-                // $colorTypeName  = self::$colorTypeNameTable[$data['ColorType']];
-                // echo "  Width:{$data['Width']} Height:{$data['Height']} BitDepth:{$data['BitDepth']}\n";
-                //  echo " ColorType:{$data['ColorType']}($colorTypeName)";
-                // echo " Compression:{$data['Compression']} Filter:{$data['Filter']} Interlate:{$data['Interlace']}\n";
-                $width     = $data['Width']; 
-                $height    = $data['Height'];
-                $bitdepth  = $data['BitDepth'];
-                $colortype = $data['ColorType'];
-                break;
-            case 'IDAT':
-                $idat_data .= $data;
-                break;
+            if ($chunk['Name'] === 'IHDR') {
+                return $chunk['Data'];
             }
         }
-        $idat_inflated = gzuncompress($idat_data);
-        $ncomp = 0;
+        return false;
+    }
+    function getIDATdata() {
+        $idat_data = "";
+        foreach ($this->_chunkList as $chunk) {
+            if ($chunk['Name'] === 'IDAT') {
+                $idat_data .= $chunk['Data'];
+            }
+        }
+        return $idat_data;
+    }
+    function deleteChunks($name) {
+        foreach ($this->_chunkList as $idx => $chunk) {
+            if ($chunk['Name'] === $name) {
+                unset($this->_chunkList[$idx]);
+            }
+        }
+    }
+    static function getNCompByColorType($colortype) {
         switch ($colortype) {
         case 0:  // GRAY
             $ncomp = 1;
@@ -338,6 +335,27 @@ class IO_PNG {
         default:
             throw new Exception("unknown colortype:$colortype");
         }
+        return $ncomp;
+    }
+    function dumpFilter($opts = Array()) {
+        $summalize = $opts["summalize"];
+        $ihdr = $this->getIHDRdata();
+        if ($ihdr === false) {
+            fprintf(stderr, "Error: not found IDHR chunk\n");
+            return ;
+        }
+        $width     = $ihdr['Width'];
+        $height    = $ihdr['Height'];
+        $bitdepth  = $ihdr['BitDepth'];
+        $colortype = $ihdr['ColorType'];
+        $idat_data = $this->getIDATdata();
+        if ($ihdr === false) {
+            fprintf(stderr, "Error: not found IDAT chunk or zero length\n");
+            return ;
+        }
+        $idat_inflated = gzuncompress($idat_data);
+        //
+        $ncomp = self::getNCompByColorType($colortype);
         $stride = 1 + (int) ceil($width * $ncomp * $bitdepth / 8);
         $offset = 0;
         $filterTable = [0 => 0, 1 => 0, 2 => 0, 3 => 0, 4 => 0];
@@ -360,52 +378,23 @@ class IO_PNG {
         }
     }
     function changeFilter($filter) {
-        $idat_data = "";
-        $width     = null;
-        $height    = null;
-        $bitdepth  = null;
-        $colortype = null;
-        $idat_idx = null;
-        foreach ($this->_chunkList as $idx => $chunk) {
-            $name = $chunk['Name'];
-            $data = $chunk['Data'];
-            switch ($name) {
-            case 'IHDR':
-                $width     = $data['Width'];
-                $height    = $data['Height'];
-                $bitdepth  = $data['BitDepth'];
-                $colortype = $data['ColorType'];
-                break;
-            case 'IDAT':
-                if (is_null($idat_idx)) {
-                    $idat_idx = $idx;
-                }
-                $idat_data .= $data;
-                unset($this->_chunkList[$idx]);  // delete old IDAT
-                break;
-            }
+        $ihdr = $this->getIHDRdata();
+        if ($ihdr === false) {
+            fprintf(stderr, "Error: not found IDHR chunk\n");
+            return ;
+        }
+        $width     = $ihdr['Width'];
+        $height    = $ihdr['Height'];
+        $bitdepth  = $ihdr['BitDepth'];
+        $colortype = $ihdr['ColorType'];
+        $idat_data = $this->getIDATdata();
+        if ($ihdr === false) {
+            fprintf(stderr, "Error: not found IDAT chunk or zero length\n");
+            return ;
         }
         $idat_inflated = gzuncompress($idat_data);
-        $ncomp = 0;
-        switch ($colortype) {
-        case 0:  // GRAY
-            $ncomp = 1;
-            break;
-        case 2:  // RGB (RGB24)
-            $ncomp = 3;
-            break;
-        case 3:  // PALETTE
-            $ncomp = 1;
-            break;
-        case 4:  // GRAY_ALPHA
-            $ncomp = 2;
-            break;
-        case 6:  // RGB_ALPHA (RGB32)
-            $ncomp = 4;
-            break;
-        default:
-            throw new Exception("unknown colortype:$colortype");
-        }
+        //
+        $ncomp = self::getNCompByColorType($colortype);
         $stride = 1 + (int) ceil($width * $ncomp * $bitdepth / 8);
         $offset = 0;
         for ($y = 0 ; $y < $height ; $y++) {
@@ -419,6 +408,7 @@ class IO_PNG {
                            'Name' => "IDAT",
                            'Data' => $data,
                            'CRC' => $crc);
-        array_splice($this->_chunkList, $idat_idx, 0, [$IDATchunk]);
+        $this->deleteChunks("IDAT");
+        array_splice($this->_chunkList, -1, 0, [$IDATchunk]);
     }
 }
