@@ -6,7 +6,7 @@ if (is_readable('vendor/autoload.php')) {
     require_once 'IO/PNG.php';
 }
 
-$options = getopt("f:hvD");
+$options = getopt("f:");
 
 function usage() {
     fprintf(STDERR, "Usage: php pngfilter.php -f <png_file>\n");
@@ -36,10 +36,4 @@ try {
     echo "Exception".$e->getMessage().PHP_EOL;
 }
 
-$opts = array(
-    'hexdump'  => isset($options['h']),
-    'verbose'  => isset($options['v']),
-    'detail' => ! isset($options['D']),
-);
-
-$png->dumpFilter($opts);
+$png->dumpFilter();
