@@ -297,6 +297,7 @@ class IO_PNG {
         $height    = null;
         $bitdepth  = null;
         $colortype = null;
+        $summalize = $opts["summalize"];
         foreach ($this->_chunkList as $chunk) {
             $name = $chunk['Name'];
             $data = $chunk['Data'];
@@ -339,12 +340,24 @@ class IO_PNG {
         }
         $stride = 1 + (int) ceil($width * $ncomp * $bitdepth / 8);
         $offset = 0;
+        $filterTable = [0 => 0, 1 => 0, 2 => 0, 3 => 0, 4 => 0];
         for ($y = 0 ; $y < $height ; $y++) {
             $filter = ord($idat_inflated{$offset});
             $offset += $stride;
-            echo "$filter ";
+            if ($summalize) {
+                $filterTable[$filter]++;
+            } else {
+                echo "$filter ";
+            }
         }
-        echo PHP_EOL;
+        if ($summalize) {
+            ksort($filterTable);
+            foreach ($filterTable as $i => $f) {
+                echo "$i:$f".PHP_EOL;
+            }
+        } else {
+            echo PHP_EOL;
+        }
     }
     function changeFilter($filter) {
         $idat_data = "";

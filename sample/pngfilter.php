@@ -6,10 +6,11 @@ if (is_readable('vendor/autoload.php')) {
     require_once 'IO/PNG.php';
 }
 
-$options = getopt("f:n:");
+$options = getopt("f:sn:");
 
 function usage() {
-    fprintf(STDERR, "Usage: php pngfilter.php -f <png_file> [-n <filter>]\n");
+    fprintf(STDERR, "Usage: php pngfilter.php -f <png_file> [-s] [-n <filter>]\n");
+    fprintf(STDERR, "ex) php pngfilter.php -f test.png -s\n");
     fprintf(STDERR, "ex) php pngfilter.php -f test.png -n 4 > retult.png\n");
 }
 
@@ -19,6 +20,7 @@ if (isset($options['f']) === false) {
 }
 
 $pngfile = $options['f'];
+$summalize = isset($options['s']);
 $filter = isset($options['n'])? intval($options['n']): null;
 
 if ($pngfile === "-") {
@@ -39,7 +41,10 @@ try {
 }
 
 if (is_null($filter)) {
-    $png->dumpFilter();
+    $opts = array(
+        'summalize'  => $summalize
+    );
+    $png->dumpFilter($opts);
 } else {
     $png->changeFilter($filter);
     echo $png->build();
