@@ -357,10 +357,11 @@ class IO_PNG {
         //
         $ncomp = self::getNCompByColorType($colortype);
         $stride = 1 + (int) ceil($width * $ncomp * $bitdepth / 8);
+        var_dump($stride);
         $offset = 0;
         $filterTable = [0 => 0, 1 => 0, 2 => 0, 3 => 0, 4 => 0];
         for ($y = 0 ; $y < $height ; $y++) {
-            $filter = ord($idat_inflated{$offset});
+            $filter = ord($idat_inflated[$offset]);
             $offset += $stride;
             if ($summalize) {
                 $filterTable[$filter]++;
@@ -398,7 +399,7 @@ class IO_PNG {
         $stride = 1 + (int) ceil($width * $ncomp * $bitdepth / 8);
         $offset = 0;
         for ($y = 0 ; $y < $height ; $y++) {
-            $idat_inflated{$offset} = chr($filter);
+            $idat_inflated[$offset] = chr($filter);
             $offset += $stride;
         }
         $data = gzcompress($idat_inflated);
