@@ -75,6 +75,16 @@ class IO_PNG {
                     'UnitSpec' => $bit_phys->getUI8(),
                 );
                 break;
+            case 'iDOT':  // apple
+                $bit_idot = new IO_Bit();
+                $bit_idot->input($data);
+                $data = array(
+                    'Data1' => $bit_idot->getUI32BE(),
+                    'Data2' => $bit_idot->getUI32BE(),
+                    'Data3' => $bit_idot->getUI32BE(),
+                    'Data4' => $bit_idot->getUI32BE(),
+                );
+                break;
             case 'PLTE':
             case 'tRNS':
             case 'IEND':
@@ -217,6 +227,13 @@ class IO_PNG {
                 $iccpData = gzuncompress($compressedICCP);
                 printf("    %s\n", substr($iccpData, 0, 0x20));
                 break;
+            case 'iDOT':  // apple
+                $data1 = $data['Data1'];
+                $data2 = $data['Data2'];
+                $data3 = $data['Data3'];
+                $data4 = $data['Data4'];
+                echo "    Data:[$data1, $data2, $data3, $data4]\n";
+                break;
             case 'IDAT':
             default:
                 $bit_data = new IO_Bit();
@@ -274,6 +291,14 @@ class IO_PNG {
             case 'PLTE':
                 break;
             case 'tRNS':
+                break;
+            case 'iDOT':  // apple
+                $bit_idot = new IO_Bit();
+                $bit_idot->putUI32BE($data['Data1']);
+                $bit_idot->putUI32BE($data['Data2']);
+                $bit_idot->putUI32BE($data['Data3']);
+                $bit_idot->putUI32BE($data['Data4']);
+                $data = $bit_idot->output();
                 break;
             case 'IDAT':
                 break;
