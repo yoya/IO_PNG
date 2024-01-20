@@ -164,6 +164,15 @@ class IO_PNG {
                 $unitSpecName = ["Unknown", "Metre"][$unitSpec];
                 printf("    pixelsX:%d, pixelsY:%d, unitSpecName:%s\n",
                        $pixelsX, $pixelsY, $unitSpecName);
+                if ($unitSpec === 1) {  // Metre
+                    if ($pixelsX === $pixelsY) {
+                        printf("    (inch pixelsX,pixelsY:%d)\n",
+                               $pixelsX / 39.37);
+                    } else {
+                        printf("    (inch pixelsX:%d, pixelsY:%d)\n",
+                               $pixelsX / 39.37, $pixelsY / 39.37);
+                    }
+                }
                 break;
             case 'PLTE':
                 $bit_idat = new IO_Bit();
