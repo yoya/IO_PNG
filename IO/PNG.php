@@ -83,6 +83,9 @@ class IO_PNG {
                     'Data2' => $bit_idot->getUI32BE(),
                     'Data3' => $bit_idot->getUI32BE(),
                     'Data4' => $bit_idot->getUI32BE(),
+                    'Data5' => $bit_idot->getUI32BE(),
+                    'Data6' => $bit_idot->getUI32BE(),
+                    'Data7' => $bit_idot->getUI32BE(),
                 );
                 break;
             case 'PLTE':
@@ -241,7 +244,10 @@ class IO_PNG {
                 $data2 = $data['Data2'];
                 $data3 = $data['Data3'];
                 $data4 = $data['Data4'];
-                echo "    Data:[$data1, $data2, $data3, $data4]\n";
+                $data5 = $data['Data5'];
+                $data6 = $data['Data6'];
+                $data7 = $data['Data7'];
+                echo "    Data:[$data1, $data2, $data3, $data4, $data5, $data6, $data7]\n";
                 break;
             case 'IDAT':
             default:
@@ -307,6 +313,9 @@ class IO_PNG {
                 $bit_idot->putUI32BE($data['Data2']);
                 $bit_idot->putUI32BE($data['Data3']);
                 $bit_idot->putUI32BE($data['Data4']);
+                $bit_idot->putUI32BE($data['Data5']);
+                $bit_idot->putUI32BE($data['Data6']);
+                $bit_idot->putUI32BE($data['Data7']);
                 $data = $bit_idot->output();
                 break;
             case 'IDAT':
