@@ -78,15 +78,21 @@ class IO_PNG {
             case 'iDOT':  // apple
                 $bit_idot = new IO_Bit();
                 $bit_idot->input($data);
+                $count = bit_idot->getUI32BE();
                 $data = array(
-                    'Data1' => $bit_idot->getUI32BE(),
-                    'Data2' => $bit_idot->getUI32BE(),
-                    'Data3' => $bit_idot->getUI32BE(),
-                    'Data4' => $bit_idot->getUI32BE(),
-                    'Data5' => $bit_idot->getUI32BE(),
-                    'Data6' => $bit_idot->getUI32BE(),
-                    'Data7' => $bit_idot->getUI32BE(),
+                    "count" => $count,
+                    'reserved' => $bit_idot->getUI32BE(),
+                    'height' => $bit_idot->getUI32BE(),
+                    'chunkSize' => $bit_idot->getUI32BE(),
+                    'entries' => [],
                 );
+                for ($i = 1; $i < $count ; $i++) {
+                    $data['entries'][] = array(
+                        'offset' => $bit_idot->getUI32BE(),
+                        'height' => $bit_idot->getUI32BE(),
+                        'idatOffset' => $bit_idot->getUI32BE(),
+                    );
+                }
                 break;
             case 'PLTE':
             case 'tRNS':
@@ -240,14 +246,21 @@ class IO_PNG {
                 printf("    %s\n", substr($iccpData, 0, 0x20));
                 break;
             case 'iDOT':  // apple
-                $data1 = $data['Data1'];
-                $data2 = $data['Data2'];
-                $data3 = $data['Data3'];
-                $data4 = $data['Data4'];
-                $data5 = $data['Data5'];
-                $data6 = $data['Data6'];
-                $data7 = $data['Data7'];
-                echo "    Data:[$data1, $data2, $data3, $data4, $data5, $data6, $data7]\n";
+                $count     = $data["count"];
+                $reserved  = $data["reserved"];
+                $height    = $data["height"];
+                $chunkSize = $data["chunkSize"];
+                $entries   = $data["entries"];
+                echo "    count:$count reserved:$reserved height:$height chunkSize:$chunkSize]\n";
+                if ($count !== count($entries) + 1) {
+                    fprintf(STDERR, "Warning: count:$count !== count(entries):%d + 1\n", count($entries));
+                }
+                foreach ($entries as $i => $entry) {
+                    $offset = $entry['offset'];
+                    $height = $entry['height'];
+                    $idatOffset = $entry['idatOffset'];
+                    echo "      [".($i+1)."/$count]: offset:$offset height:$height idatOffset:$idatOffset\n";
+                };
                 break;
             case 'IDAT':
             default:
@@ -309,13 +322,26 @@ class IO_PNG {
                 break;
             case 'iDOT':  // apple
                 $bit_idot = new IO_Bit();
-                $bit_idot->putUI32BE($data['Data1']);
-                $bit_idot->putUI32BE($data['Data2']);
-                $bit_idot->putUI32BE($data['Data3']);
-                $bit_idot->putUI32BE($data['Data4']);
-                $bit_idot->putUI32BE($data['Data5']);
-                $bit_idot->putUI32BE($data['Data6']);
-                $bit_idot->putUI32BE($data['Data7']);
+                $count   = $data["count"];
+                $entries = $data["entries"];
+                if ($count !== count($entries) + 1) {
+                    fprintf(STDERR, "Warning: count:$count !== count(entries):%d + 1\n", count($entries));
+                    $count = count($entries) + 1;
+                }
+                $bit_idot->putUI32BE($count);
+                $bit_idot->putUI32BE($data["reserved"]);
+                $bit_idot->putUI32BE($data["height"]);
+                $bit_idot->putUI32BE($data["chunkSize"]);
+                $entries = $data["entries"];
+                if ($count !== count($entries)) {
+                    fprintf(STDERR, "Warning: count:$count count(entries):%d\n", count($entries));
+                    $count = count($entries);
+                }
+                foreach ($entry as $entries) {
+                    $bit_idot->putUI32BE($entry["offset"]);
+                    $bit_idot->putUI32BE($entry["height"]);
+                    $bit_idot->putUI32BE($entry["idatOffset"]);
+                }
                 $data = $bit_idot->output();
                 break;
             case 'IDAT':
