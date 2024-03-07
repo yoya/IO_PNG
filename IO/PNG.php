@@ -178,7 +178,7 @@ class IO_PNG {
                         printf("    (inch pixelsX,pixelsY:%d)\n",
                                $pixelsX / 39.37);
                     } else {
-                        printf("    (inch pixelsX:%d, pixelsY:%d)\n",
+                        printf("    (inch pixelsX:%.3f, pixelsY:%.3f)\n",
                                $pixelsX / 39.37, $pixelsY / 39.37);
                     }
                 }
