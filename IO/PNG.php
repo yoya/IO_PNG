@@ -60,6 +60,20 @@ class IO_PNG {
                     );
 
                 break;
+            case 'cHRM':
+                $bit_chrm = new IO_Bit();
+                $bit_chrm->input($data);
+                $data = array(
+                    'WhitePoint_x' => $bit_chrm->getSI32BE() / 100000,
+                    'WhitePoint_y' => $bit_chrm->getSI32BE() / 100000,
+                    'Red_x' => $bit_chrm->getSI32BE() / 100000,
+                    'Red_y' => $bit_chrm->getSI32BE() / 100000,
+                    'Green_x' => $bit_chrm->getSI32BE() / 100000,
+                    'Green_y' => $bit_chrm->getSI32BE() / 100000,
+                    'Blue_x' => $bit_chrm->getSI32BE() / 100000,
+                    'Blue_y' => $bit_chrm->getSI32BE() / 100000,
+                );
+                break;
             case 'gAMA':
                 $bit_gama = new IO_Bit();
                 $bit_gama->input($data);
@@ -161,6 +175,15 @@ class IO_PNG {
                 echo " ColorType:{$data['ColorType']}($colorTypeName)";
                 echo " Compression:{$data['Compression']} Filter:{$data['Filter']} Interlate:{$data['Interlace']}";
                 echo "\n";
+                break;
+            case 'cHRM':
+                $chrm = $data;
+                printf("    WhitePoint:%.3f,%.3f\n",
+                       $chrm['WhitePoint_x'], $chrm['WhitePoint_y']);
+                printf("    Red:%.3f,%.3f Green:%.3f,%.3f Blue:%.3f,%.3f\n",
+                       $chrm['Red_x'], $chrm['Red_y'],
+                       $chrm['Green_x'], $chrm['Green_y'],
+                       $chrm['Blue_x'], $chrm['Blue_y']);
                 break;
             case 'gAMA':
                 $gamma = $data;
@@ -302,6 +325,18 @@ class IO_PNG {
                 $bit_ihdr->putUI8($data['Filter']);
                 $bit_ihdr->putUI8($data['Interlace']);
                 $data = $bit_ihdr->output();
+                break;
+            case 'cHRM':
+                $bit_chrm = new IO_Bit();
+                $bit_chrm->putSI32BE($data['WhitePoint_x'] * 100000);
+                $bit_chrm->putSI32BE($data['WhitePoint_y'] * 100000);
+                $bit_chrm->putSI32BE($data['Red_x'] * 100000);
+                $bit_chrm->putSI32BE($data['Red_y'] * 100000);
+                $bit_chrm->putSI32BE($data['Green_x'] * 100000);
+                $bit_chrm->putSI32BE($data['Green_y'] * 100000);
+                $bit_chrm->putSI32BE($data['Blue_x'] * 100000);
+                $bit_chrm->putSI32BE($data['Blue_y'] * 100000);
+                $data = $bit_chrm->output();
                 break;
             case 'gAMA':
                 $bit_gama = new IO_Bit();
