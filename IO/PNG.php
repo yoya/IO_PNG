@@ -328,19 +328,19 @@ class IO_PNG {
                 break;
             case 'cHRM':
                 $bit_chrm = new IO_Bit();
-                $bit_chrm->putSI32BE($data['WhitePoint_x'] * 100000);
-                $bit_chrm->putSI32BE($data['WhitePoint_y'] * 100000);
-                $bit_chrm->putSI32BE($data['Red_x'] * 100000);
-                $bit_chrm->putSI32BE($data['Red_y'] * 100000);
-                $bit_chrm->putSI32BE($data['Green_x'] * 100000);
-                $bit_chrm->putSI32BE($data['Green_y'] * 100000);
-                $bit_chrm->putSI32BE($data['Blue_x'] * 100000);
-                $bit_chrm->putSI32BE($data['Blue_y'] * 100000);
+                $bit_chrm->putSI32BE((int) round($data['WhitePoint_x'] * 100000));
+                $bit_chrm->putSI32BE((int) round($data['WhitePoint_y'] * 100000));
+                $bit_chrm->putSI32BE((int) round($data['Red_x'] * 100000));
+                $bit_chrm->putSI32BE((int) round($data['Red_y'] * 100000));
+                $bit_chrm->putSI32BE((int) round($data['Green_x'] * 100000));
+                $bit_chrm->putSI32BE((int) round($data['Green_y'] * 100000));
+                $bit_chrm->putSI32BE((int) round($data['Blue_x'] * 100000));
+                $bit_chrm->putSI32BE((int) round($data['Blue_y'] * 100000));
                 $data = $bit_chrm->output();
                 break;
             case 'gAMA':
                 $bit_gama = new IO_Bit();
-                $gamma = $data * 100000;
+                $gamma = (int) round($data * 100000);
                 $bit_gama->putUI32BE($gamma);
                 $data = $bit_gama->output();
                 break;

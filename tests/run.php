@@ -33,7 +33,8 @@ function chunk($name, $data) {
 
 function png($chunks) {
     $ihdr = chunk('IHDR', pack('NN', 2, 2)."\x08\x00\x00\x00\x00");
-    return IO_PNG::SIGNATURE.$ihdr.$chunks.chunk('IEND', '');
+    $idat = chunk('IDAT', gzcompress("\0\x10\x20\0\x30\x40"));
+    return IO_PNG::SIGNATURE.$ihdr.$chunks.$idat.chunk('IEND', '');
 }
 
 function parsePNG($data) {
@@ -76,6 +77,23 @@ function dumpOf($png, $opts = array('detail' => true)) {
  */
 $dump = dumpOf(parsePNG(png(chunk('PLTE', "\xff\x00\x00\x00\xff\x00"))));
 check('PLTE dump RGB', true, strpos($dump, "    0x00: ff0000 00ff00\n") !== false);
+
+/*
+ * gAMA, cHRM: parse -> build keeps the values
+ */
+$input = png(chunk('gAMA', pack('N', 45455)));
+check('gAMA build', $input, parsePNG($input)->build());
+for ($g = 0; $g <= 200000; $g++) {
+    $png = new IO_PNG();
+    $png->_chunkList = [['Name' => 'gAMA', 'Data' => $g / 100000]];
+    if ($png->build() !== IO_PNG::SIGNATURE.chunk('gAMA', pack('N', $g))) {
+        break;
+    }
+}
+check('gAMA build 0..200000', 200001, $g);
+$input = png(chunk('cHRM', pack('N*', 31270, 32900, 64000, 33000,
+                                30000, 60000, 15000, 6000)));
+check('cHRM build', $input, parsePNG($input)->build());
 
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);
