@@ -106,7 +106,7 @@ file_put_contents('output.png', $png->build());
 | `IO_Bit` (別パッケージ) | バイト単位の読み書き |
 
 - `parse()` はシグネチャの後のチャンクを IEND まで読み、`_chunkList` に `Name` `Size` `Data` `CRC` (と元の位置 `_offset` `_length`) を並べる。
-  JNG のシグネチャも受け付ける。CRC が合わないチャンクは STDERR に警告を出して読み進める。
+  JNG のシグネチャも受け付け、読んだシグネチャは `_signature` に持つ (`build()` はそれを書く)。CRC が合わないチャンクは STDERR に警告を出して読み進める。
 - `Data` は、IHDR・cHRM・pHYs・iDOT (Apple) が連想配列、gAMA が数値 (例 0.45455)。gAMA と cHRM の値は 1/100000 単位を換算したもの。
   それ以外のチャンク (PLTE, tRNS, iCCP, IDAT など) はバイト列のまま持つ。
 - `build()` は上の解釈したチャンクを値から作り直し、それ以外はバイト列のまま書く。長さと CRC はすべて計算し直す。
@@ -128,10 +128,8 @@ file_put_contents('output.png', $png->build());
 
 # 既知の制限
 
-- JNG を `build()` すると、シグネチャが PNG のものになる。
 - `pngfilter.php -n` (`changeFilter()`) は各行のフィルタ種別のバイトを書き換えるだけで画素を再フィルタしないので、画像が変わる。インターレースも考慮しない (`dumpFilter()` も同じ)。
 - `pngaddchunk.php` は同じ種類のチャンクが既にあっても追加する。
-- tRNS のダンプは、グレー・RGB でも 1 サンプルを 1 バイトとして区切って表示する (本来は 2 バイト)。
 
 # Test
 

@@ -106,7 +106,7 @@ file_put_contents('output.png', $png->build());
 | `IO_Bit` (separate package) | Byte-level reading and writing |
 
 - `parse()` reads the chunks after the signature up to IEND, and lists them in `_chunkList` with `Name` `Size` `Data` `CRC` (and the original position `_offset` `_length`).
-  It also accepts the JNG signature. A chunk with a wrong CRC is reported as a warning on STDERR and parsing continues.
+  It also accepts the JNG signature; the signature read is kept in `_signature` (`build()` writes it). A chunk with a wrong CRC is reported as a warning on STDERR and parsing continues.
 - `Data` is an associative array for IHDR, cHRM, pHYs and iDOT (Apple), and a number for gAMA (e.g. 0.45455). gAMA and cHRM values are converted from 1/100000 units.
   Other chunks (PLTE, tRNS, iCCP, IDAT, etc.) are kept as bytes.
 - `build()` rebuilds the interpreted chunks above from their values and writes the others as bytes. Lengths and CRCs are all recalculated.
@@ -128,10 +128,8 @@ file_put_contents('output.png', $png->build());
 
 # Known limitations
 
-- `build()` of a JNG writes the PNG signature.
 - `pngfilter.php -n` (`changeFilter()`) only rewrites the filter type byte of each row and does not re-filter the pixels, so the image changes. It also ignores interlace (so does `dumpFilter()`).
 - `pngaddchunk.php` adds a chunk even if one of the same type already exists.
-- The tRNS dump groups samples as 1 byte each also for gray and RGB (they are 2 bytes).
 
 # Test
 
