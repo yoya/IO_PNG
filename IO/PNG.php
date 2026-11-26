@@ -232,14 +232,18 @@ class IO_PNG {
                 break;
             case 'tRNS':
                 switch ($colorType) {
-                case 0: // Gray
-                case 3: // PALETTE
-                    $nComp = 1;
+                case 0: // Gray (one 16-bit sample)
+                    $nComp = 2;
                     $unit = 24;
                     break;
-                case 2: // RGB
-                    $nComp = 3;
+                case 2: // RGB (three 16-bit samples)
+                    $nComp = 6;
                     $unit = 8;
+                    break;
+                case 3: // PALETTE (1 byte per entry)
+                default:
+                    $nComp = 1;
+                    $unit = 24;
                     break;
                 }
                 $bit_idat = new IO_Bit();

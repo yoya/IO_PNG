@@ -135,5 +135,22 @@ $png = new IO_PNG();
 $png->_chunkList = parsePNG(png(''))->_chunkList;
 check('build without parse: PNG signature', png(''), $png->build());
 
+/*
+ * tRNS dump: 16-bit samples for gray and RGB, 1 byte per palette entry
+ */
+function trnsDump($colorType, $trns) {
+    $ihdr = chunk('IHDR', pack('NN', 2, 2)."\x08".chr($colorType)."\x00\x00\x00");
+    $plte = ($colorType === 3) ? chunk('PLTE', "\xff\x00\x00\x00\xff\x00") : '';
+    $data = IO_PNG::SIGNATURE.$ihdr.$plte.chunk('tRNS', $trns).chunk('IDAT', gzcompress(str_repeat("\0", 14))).chunk('IEND', '');
+    ob_start();
+    parsePNG($data)->dump(array('detail' => true));
+    $out = ob_get_clean();
+    preg_match('/Name:tRNS[^\n]*\n(.*?)Name:/s', $out, $m);
+    return $m[1];
+}
+check('tRNS dump gray', "    0x00: 00ff\n", trnsDump(0, "\x00\xff"));
+check('tRNS dump RGB', "    0x00: 001100220033\n", trnsDump(2, "\x00\x11\x00\x22\x00\x33"));
+check('tRNS dump palette', "    0x00: 00 ff\n", trnsDump(3, "\x00\xff"));
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);
