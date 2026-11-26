@@ -218,7 +218,7 @@ class IO_PNG {
                     $r = $bit_idat->getUI8();
                     $g = $bit_idat->getUI8();
                     $b = $bit_idat->getUI8();
-                    printf(" %02x%02x%02x", $i, $r, $g, $b);
+                    printf(" %02x%02x%02x", $r, $g, $b);
                     $i++;
                     if (($i > 0) && (($i % $unit) === 0)) {
                         echo "\n";

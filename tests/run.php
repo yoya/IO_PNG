@@ -65,5 +65,17 @@ check('iDOT parse entries',
 $input = png(chunk('iDOT', $idot));
 check('iDOT build', $input, parsePNG($input)->build());
 
+function dumpOf($png, $opts = array('detail' => true)) {
+    ob_start();
+    $png->dump($opts);
+    return ob_get_clean();
+}
+
+/*
+ * PLTE dump
+ */
+$dump = dumpOf(parsePNG(png(chunk('PLTE', "\xff\x00\x00\x00\xff\x00"))));
+check('PLTE dump RGB', true, strpos($dump, "    0x00: ff0000 00ff00\n") !== false);
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);
