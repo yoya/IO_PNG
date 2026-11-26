@@ -440,7 +440,7 @@ class IO_PNG {
         $summalize = $opts["summalize"];
         $ihdr = $this->getIHDRdata();
         if ($ihdr === false) {
-            fprintf(stderr, "Error: not found IDHR chunk\n");
+            fprintf(STDERR, "Error: not found IDHR chunk\n");
             return ;
         }
         $width     = $ihdr['Width'];
@@ -448,15 +448,14 @@ class IO_PNG {
         $bitdepth  = $ihdr['BitDepth'];
         $colortype = $ihdr['ColorType'];
         $idat_data = $this->getIDATdata();
-        if ($ihdr === false) {
-            fprintf(stderr, "Error: not found IDAT chunk or zero length\n");
+        if ($idat_data === "") {
+            fprintf(STDERR, "Error: not found IDAT chunk or zero length\n");
             return ;
         }
         $idat_inflated = gzuncompress($idat_data);
         //
         $ncomp = self::getNCompByColorType($colortype);
         $stride = 1 + (int) ceil($width * $ncomp * $bitdepth / 8);
-        var_dump($stride);
         $offset = 0;
         $filterTable = [0 => 0, 1 => 0, 2 => 0, 3 => 0, 4 => 0];
         for ($y = 0 ; $y < $height ; $y++) {
@@ -480,7 +479,7 @@ class IO_PNG {
     function changeFilter($filter) {
         $ihdr = $this->getIHDRdata();
         if ($ihdr === false) {
-            fprintf(stderr, "Error: not found IDHR chunk\n");
+            fprintf(STDERR, "Error: not found IDHR chunk\n");
             return ;
         }
         $width     = $ihdr['Width'];
@@ -488,8 +487,8 @@ class IO_PNG {
         $bitdepth  = $ihdr['BitDepth'];
         $colortype = $ihdr['ColorType'];
         $idat_data = $this->getIDATdata();
-        if ($ihdr === false) {
-            fprintf(stderr, "Error: not found IDAT chunk or zero length\n");
+        if ($idat_data === "") {
+            fprintf(STDERR, "Error: not found IDAT chunk or zero length\n");
             return ;
         }
         $idat_inflated = gzuncompress($idat_data);

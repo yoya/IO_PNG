@@ -102,5 +102,22 @@ $icc = str_repeat("ICCDATA-", 8);
 $dump = dumpOf(parsePNG(png(chunk('iCCP', "ICC Profile\0\0".gzcompress($icc)))));
 check('iCCP dump long name', true, strpos($dump, "    ICCDATA-ICCDATA-") !== false);
 
+/*
+ * dumpFilter
+ */
+ob_start();
+parsePNG(png(''))->dumpFilter(['summalize' => true]);
+check('dumpFilter', "0:2\n1:0\n2:0\n3:0\n4:0\n", ob_get_clean());
+$png = new IO_PNG();
+$png->_chunkList = [];
+ob_start();
+$png->dumpFilter(['summalize' => true]);  // no IHDR: error message only
+check('dumpFilter no IHDR', '', ob_get_clean());
+$png = parsePNG(png(''));
+$png->deleteChunks('IDAT');
+ob_start();
+$png->dumpFilter(['summalize' => true]);  // no IDAT: error message only
+check('dumpFilter no IDAT', '', ob_get_clean());
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);
