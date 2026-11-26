@@ -95,5 +95,12 @@ $input = png(chunk('cHRM', pack('N*', 31270, 32900, 64000, 33000,
                                 30000, 60000, 15000, 6000)));
 check('cHRM build', $input, parsePNG($input)->build());
 
+/*
+ * iCCP with a profile name other than 3 bytes
+ */
+$icc = str_repeat("ICCDATA-", 8);
+$dump = dumpOf(parsePNG(png(chunk('iCCP', "ICC Profile\0\0".gzcompress($icc)))));
+check('iCCP dump long name', true, strpos($dump, "    ICCDATA-ICCDATA-") !== false);
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);

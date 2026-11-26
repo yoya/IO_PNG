@@ -51,9 +51,9 @@ if (isset($options['t']) === false) {
             break;
         case "iCCP":
             $chunkData = $chunk['Data'];
-            $chunkData_head5 = substr($chunkData, 0, 5);
+            $chunkData_head = substr($chunkData, 0, strpos($chunkData, "\0") + 2);
             $iccData = file_get_contents($dataArg);
-            $png->_chunkList[$idx]['Data'] = $chunkData_head5 . gzcompress($iccData);
+            $png->_chunkList[$idx]['Data'] = $chunkData_head . gzcompress($iccData);
             break;
         default:
             echo "Unknown type:$typeArg\n";

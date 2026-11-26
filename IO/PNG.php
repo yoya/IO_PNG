@@ -261,10 +261,10 @@ class IO_PNG {
                 }
                 break;
             case 'iCCP':
-                $bit_idat = new IO_Bit();
-                $bit_idat->input($data);
-                printf("    %s\n", $bit_idat->getData(5));
-                $compressedICCP =$bit_idat->getDataUntil(false);
+                // profile name (1-79 bytes), NUL, compression method
+                $headLen = strpos($data, "\0") + 2;
+                printf("    %s\n", substr($data, 0, $headLen));
+                $compressedICCP = substr($data, $headLen);
                 $iccpData = gzuncompress($compressedICCP);
                 printf("    %s\n", substr($iccpData, 0, 0x20));
                 break;

@@ -59,7 +59,7 @@ if (isset($options['t']) === false) {
             $data .= $chunk['Data'];
             break;
         case "iCCP":
-            $data = substr($chunk['Data'], 5);
+            $data = substr($chunk['Data'], strpos($chunk['Data'], "\0") + 2);
             break;
         case "IDAT":
         default: // "gAMA"
