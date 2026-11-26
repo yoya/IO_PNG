@@ -119,5 +119,12 @@ ob_start();
 $png->dumpFilter(['summalize' => true]);  // no IDAT: error message only
 check('dumpFilter no IDAT', '', ob_get_clean());
 
+/*
+ * dump without detail: length of a printable chunk
+ */
+$dump = dumpOf(parsePNG(png(chunk("teSt", "hello"))), array());
+check('dump printable chunk length', true, strpos($dump, "Name:teSt Size=5 CRC=") !== false &&
+      strpos($dump, " (5)\n") !== false);
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);

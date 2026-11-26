@@ -152,7 +152,7 @@ class IO_PNG {
                         echo "(".implode(",", $chunkData).")";
                     } else if (is_string($chunk['Data'])) {
                         if (ctype_print($chunkData)) {
-                            echo "($chunkLen)";
+                            echo "(".strlen($chunkData).")";
                         }
                     } else {
                         echo "($chunkData)";
