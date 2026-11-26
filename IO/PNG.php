@@ -367,12 +367,7 @@ class IO_PNG {
                 $bit_idot->putUI32BE($data["reserved"]);
                 $bit_idot->putUI32BE($data["height"]);
                 $bit_idot->putUI32BE($data["chunkSize"]);
-                $entries = $data["entries"];
-                if ($count !== count($entries)) {
-                    fprintf(STDERR, "Warning: count:$count count(entries):%d\n", count($entries));
-                    $count = count($entries);
-                }
-                foreach ($entry as $entries) {
+                foreach ($entries as $entry) {
                     $bit_idot->putUI32BE($entry["offset"]);
                     $bit_idot->putUI32BE($entry["height"]);
                     $bit_idot->putUI32BE($entry["idatOffset"]);

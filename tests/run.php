@@ -62,5 +62,8 @@ check('iDOT parse entries',
       [['offset' => 1, 'height' => 1, 'idatOffset' => 80]],
       $chunk['Data']['entries']);
 
+$input = png(chunk('iDOT', $idot));
+check('iDOT build', $input, parsePNG($input)->build());
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);
