@@ -92,7 +92,7 @@ class IO_PNG {
             case 'iDOT':  // apple
                 $bit_idot = new IO_Bit();
                 $bit_idot->input($data);
-                $count = bit_idot->getUI32BE();
+                $count = $bit_idot->getUI32BE();
                 $data = array(
                     "count" => $count,
                     'reserved' => $bit_idot->getUI32BE(),
