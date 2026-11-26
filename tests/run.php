@@ -126,5 +126,14 @@ $dump = dumpOf(parsePNG(png(chunk("teSt", "hello"))), array());
 check('dump printable chunk length', true, strpos($dump, "Name:teSt Size=5 CRC=") !== false &&
       strpos($dump, " (5)\n") !== false);
 
+/*
+ * build keeps the parsed signature (JNG stays JNG)
+ */
+$input = IO_PNG::SIGNATURE_JNG.substr(png(''), 8);
+check('JNG signature build', bin2hex($input), bin2hex(parsePNG($input)->build()));
+$png = new IO_PNG();
+$png->_chunkList = parsePNG(png(''))->_chunkList;
+check('build without parse: PNG signature', png(''), $png->build());
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);

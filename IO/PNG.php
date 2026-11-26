@@ -14,6 +14,7 @@ if (is_readable('vendor/autoload.php')) {
 class IO_PNG {
     var $_chunkList = null;
     var $_pngdata = null;
+    var $_signature = null;
     const SIGNATURE = "\x89\x50\x4E\x47\x0D\x0A\x1A\x0A";
     const SIGNATURE_JNG = "\x8B\x4A\x4E\x47\x0D\x0A\x1A\x0A";
     function parse($pngdata) {
@@ -28,6 +29,7 @@ class IO_PNG {
             ($signature != self::SIGNATURE_JNG)) {
             throw new Exception ("Not PNG,JNG FILE ($signature)");
         }
+        $this->_signature = $signature;
         while ($bit->hasNextData(8)) {
             list($offset, $dummy) = $bit->getOffset();
             $dataSize = $bit->getUI32BE();
@@ -310,7 +312,11 @@ class IO_PNG {
     }
     function build($opts = array()) {
         $bit = new IO_Bit();
-        $bit->putData(self::SIGNATURE);
+        if (is_null($this->_signature)) {
+            $bit->putData(self::SIGNATURE);
+        } else {
+            $bit->putData($this->_signature);
+        }
         foreach ($this->_chunkList as $chunk) {
             $chunkName = $chunk['Name'];
             $data = $chunk['Data'];
