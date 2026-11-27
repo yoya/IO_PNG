@@ -142,3 +142,9 @@ IO_Bit は vendor/ (composer install) か include_path から読み込みます�
 # Reference
 
 - https://www.w3.org/TR/png/
+
+## IO_Bit の利用箇所
+
+チャンクの長さは `getUI32BE()` で読みます。チャンクを書き出す際は `putUI32BE()` で長さと CRC を書きます。
+
+[IO_Bit Wiki](https://github.com/yoya/IO_Bit/wiki)
