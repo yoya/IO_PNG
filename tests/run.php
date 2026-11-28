@@ -407,6 +407,111 @@ checkThrows('parse iDOT count > entries', function () { parsePNG(IO_PNG::SIGNATU
 $png = parsePNG(IO_PNG::SIGNATURE.chunk('IHDR', pack('NNCCCCC', 1, 1, 8, 0, 0, 0, 0)));
 check('parse without IEND', array('IHDR'), chunkNames($png));
 
+/*
+ * sample/*.php on the test data
+ */
+function sample($script, $args, $cwd = null) {
+    global $root;
+    return runPHP(array_merge(array($root.'/sample/'.$script), $args), $cwd);
+}
+$good = array('gray.png', 'rgb.png', 'palette.png', 'grayalpha.png', 'rgba.png');
+foreach ($good as $name) {
+    $f = "$dataDir/$name";
+    list($status, $out, $err) = sample('pngdump.php', array('-f', $f));
+    check("pngdump $name", array(0, '', 1), array($status, $err, preg_match('/^Name:IHDR Size=13 /', $out)));
+    list($status, $out, $err) = sample('pngdump.php', array('-h', '-f', $f));
+    check("pngdump -h $name", array(0, '', 1), array($status, $err, preg_match('/^Name:IHDR Size=13 CRC=\d+\n/', $out)));
+    if ($name !== 'rgba.png') {  // iDOT summary: "Array to string conversion"
+        list($status, $out, $err) = sample('pngdump.php', array('-D', '-f', $f));
+        check("pngdump -D $name", array(0, '', 1), array($status, $err, preg_match('/^Name:IHDR Size=13 CRC=\d+ \(/', $out)));
+    }
+    list($status, $out, $err) = sample('pngrebuild.php', array('-f', $f));
+    check("pngrebuild $name", array(0, '', md5(dataFile($name))), array($status, $err, md5($out)));
+    list($status, $out, $err) = sample('pngfilter.php', array('-s', '-f', $f));
+    check("pngfilter -s $name", array(0, '', filterOf($name, true)), array($status, $err, $out));
+    list($status, $out, $err) = sample('pngcrc.php', array('-f', $f));
+    check("pngcrc $name", array(0, '', 0), array($status, $err, preg_match('/=>/', $out)));
+    list($status, $out, $err) = sample('pnggetchunk.php', array('-f', $f));
+    check("pnggetchunk list $name", array(0, '', 1), array($status, $err, preg_match('/^IHDR:\n/', $out)));
+}
+list($status, $out, $err) = sample('pngrebuild.php', array('-f', "$dataDir/simple.jng"));
+check('pngrebuild jng', array(0, '', md5(dataFile('simple.jng'))), array($status, $err, md5($out)));
+list($status, $out, $err) = sample('pngdump.php', array('-D', '-f', "$dataDir/simple.jng"));
+check('pngdump -D jng', array(0, ''), array($status, $err));
+
+// bad CRC: warning, listed with the right value, fixed by build
+$fixedCRC = crc32('gAMA'.pack('N', 45455));
+list($status, $out, $err) = sample('pngcrc.php', array('-f', "$dataDir/badcrc.png"));
+check('pngcrc badcrc warning', 1, preg_match('/^Warning: chunkName:gAMA crc:\d+ namedata_crc32:'.$fixedCRC.'\n$/', $err));
+check('pngcrc badcrc list', 1, preg_match('/\[1\] gAMA crc:\d+ => '.$fixedCRC.'\n/', $out));
+list($status, $out, $err) = sample('pngcrc.php', array('-c', '-f', "$dataDir/badcrc.png"));
+check('pngcrc -c badcrc', array(0, md5(dataFile('gray.png'))), array($status, md5($out)));
+
+// pngchunk: list, split (-s writes NN_name.pnc in cwd), pngcat joins them back
+list($status, $out, $err) = sample('pngchunk.php', array('-f', "$dataDir/rgb.png"));
+check('pngchunk list', array(0, '', 1), array($status, $err, preg_match('/\[0\] IHDR offset:8 length:25\n.*\[7\] IEND offset:190 length:12\n$/s', $out)));
+list($status, $out, $err) = sample('pngchunk.php', array('-s', '-f', "$dataDir/rgb.png"), $tmpDir);
+$pnc = glob("$tmpDir/*.pnc");
+check('pngchunk -s files', array('00_IHDR.pnc', '01_cHRM.pnc', '02_pHYs.pnc', '03_tRNS.pnc', '04_tEXt.pnc', '05_IDAT.pnc', '06_IDAT.pnc', '07_IEND.pnc'),
+      array_map('basename', $pnc));
+check('pngchunk -s IHDR.pnc', 'IHDR'.pack('NNCCCCC', 2, 2, 8, 2, 0, 0, 0), file_get_contents("$tmpDir/00_IHDR.pnc"));
+list($status, $out, $err) = sample('pngcat.php', $pnc);
+check('pngcat', array(0, '', md5(dataFile('rgb.png'))), array($status, $err, md5($out)));
+cleanTmp();
+
+// pnggetchunk
+list($status, $out, $err) = sample('pnggetchunk.php', array('-f', "$dataDir/palette.png", '-t', 'iCCP', '-u'));
+check('pnggetchunk iCCP -u', array(0, '', $profile), array($status, $err, $out));
+list($status, $out, $err) = sample('pnggetchunk.php', array('-f', "$dataDir/rgb.png", '-t', 'IDAT', '-u'));
+check('pnggetchunk IDAT -u', array(0, '', "\x01\xff\x00\x00\x01\x00\x00\x02\x00\xff\x00\x00\x00\xff"), array($status, $err, $out));
+list($status, $out, $err) = sample('pnggetchunk.php', array('-f', "$dataDir/rgb.png", '-t', 'tEXt'));
+check('pnggetchunk tEXt', array(0, '', "Comment\0hello"), array($status, $err, $out));
+
+// pngdelchunk
+list($status, $out, $err) = sample('pngdelchunk.php', array('-f', "$dataDir/gray.png", '-t', 'tRNS'));
+check('pngdelchunk tRNS', array(0, '', bin2hex(substr($gray, 0, $trnsPos).substr($gray, $trnsPos + 14))), array($status, $err, bin2hex($out)));
+list($status, $out, $err) = sample('pngdelchunk.php', array('-f', "$dataDir/gray.png"));
+check('pngdelchunk list', array(0, '', 1), array($status, $err, preg_match('/^Name:IHDR Size=13 CRC=\d+ \(3,2,8,0,0,0,0\)\n/', $out)));
+
+// pngaddchunk / pngreplacechunk
+$ga = dataFile('grayalpha.png');
+list($status, $out, $err) = sample('pngaddchunk.php', array('-f', "$dataDir/grayalpha.png", '-t', 'gAMA', '-d', '1.0'));
+check('pngaddchunk gAMA', array(0, '', bin2hex(substr($ga, 0, 33).chunk('gAMA', pack('N', 100000)).substr($ga, 33))),
+      array($status, $err, bin2hex($out)));
+file_put_contents("$tmpDir/test.icc", $profile);
+list($status, $out, $err) = sample('pngaddchunk.php', array('-f', "$dataDir/grayalpha.png", '-t', 'iCCP', '-d', "$tmpDir/test.icc"));
+$out = parsePNG($out);
+check('pngaddchunk iCCP', array(0, '', array('IHDR', 'iCCP', 'IDAT', 'IEND'), "icc\0\0", $profile),
+      array($status, $err, chunkNames($out), substr($out->_chunkList[1]['Data'], 0, 5), gzuncompress(substr($out->_chunkList[1]['Data'], 5))));
+list($status, $out, $err) = sample('pngreplacechunk.php', array('-f', "$dataDir/gray.png", '-t', 'gAMA', '-d', '0.5'));
+$gamaPos = strpos($gray, 'gAMA') - 4;
+check('pngreplacechunk gAMA', array(0, '', bin2hex(substr($gray, 0, $gamaPos).chunk('gAMA', pack('N', 50000)).substr($gray, $gamaPos + 16))),
+      array($status, $err, bin2hex($out)));
+file_put_contents("$tmpDir/test.icc", "NEWPROFILE");
+list($status, $out, $err) = sample('pngreplacechunk.php', array('-f', "$dataDir/palette.png", '-t', 'iCCP', '-d', "$tmpDir/test.icc"));
+$out = parsePNG($out);
+check('pngreplacechunk iCCP', array(0, '', "Test Profile\0\0", 'NEWPROFILE'),
+      array($status, $err, substr($out->_chunkList[1]['Data'], 0, 14), gzuncompress(substr($out->_chunkList[1]['Data'], 14))));
+cleanTmp();
+
+// pngfilter -n
+list($status, $out, $err) = sample('pngfilter.php', array('-n', '2', '-f', "$dataDir/gray.png"));
+check('pngfilter -n', array(0, '', "\x02\x0a\x14\x1e\x02\x05\x05\x05"), array($status, $err, gzuncompress(parsePNG($out)->getIDATdata())));
+
+// pngextract: PNGs embedded in other bytes
+file_put_contents("$tmpDir/blob.dat", "head".dataFile('gray.png')."middle".dataFile('rgb.png')."tail");
+list($status, $out, $err) = sample('pngextract.php', array('-f', "$tmpDir/blob.dat", '-p', "$tmpDir/out"));
+check('pngextract', array(0, '', "$tmpDir/out0000.png\n$tmpDir/out0001.png\n"), array($status, $err, $out));
+check('pngextract 0', md5(dataFile('gray.png')), md5((string) @file_get_contents("$tmpDir/out0000.png")));
+check('pngextract 1', md5(dataFile('rgb.png')), md5((string) @file_get_contents("$tmpDir/out0001.png")));
+cleanTmp();
+
+// usage
+foreach (array('pngdump.php', 'pngrebuild.php', 'pngchunk.php', 'pngcrc.php', 'pngfilter.php', 'pnggetchunk.php',
+               'pngdelchunk.php', 'pngaddchunk.php', 'pngreplacechunk.php', 'pngextract.php', 'pngcat.php') as $script) {
+    list($status, $out, $err) = sample($script, array());
+    check("$script usage", array(1, 1), array($status, preg_match('/Usage/', $out.$err)));
+}
 rmdir($tmpDir);
 
 echo "passed: $passed, failed: $failed".PHP_EOL;
